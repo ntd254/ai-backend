@@ -23,7 +23,7 @@ CORS(app)
 
 predict_spam_model = load('predict_spam.joblib')
 cv = CountVectorizer()
-df = pd.read_csv("spam1.csv", encoding="latin-1")
+df = pd.read_csv("spam.csv", encoding="latin-1")
 df.drop(['Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4'], axis=1, inplace=True)
 X = df['text']
 X = cv.fit_transform(X)
