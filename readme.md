@@ -1,0 +1,7 @@
+- Install Python version 3.10.8
+- pip install -U scikit-learn
+- pip install pandas
+- pip install Flask
+- pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib
+- pip install -U flask-cors
+- flask --app app run
