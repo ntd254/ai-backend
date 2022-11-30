@@ -6,8 +6,8 @@ Install
 - pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib
 - pip install -U flask-cors
 - python create_model
-- flask --app app run
 
+Execute command: flask --app app run
 
 End points:
 - localhost:5000/login
