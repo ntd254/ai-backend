@@ -7,6 +7,8 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+import base64
+from base64 import urlsafe_b64decode
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://mail.google.com/']
@@ -52,5 +54,25 @@ def main():
         print(f'An error occurred: {error}')
 
 
+def base64_url_decode(base64_url):
+    padding = b'=' * (4 - (len(str(base64_url)) % 4))
+
+    return urlsafe_b64decode(base64_url + padding)
+
+
+def get_message():
+    creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+    service = build('gmail', 'v1', credentials=creds)
+    result = service.users().messages().list(userId='me', maxResults=10).execute()
+    # message = service.users().messages().get(userId='me', id='184e7ac88fe4c8b4').execute()
+    # content = base64.b64decode(message.get('payload').get('parts')[0].get('body').get('data')).decode('utf-8')[:-2]
+    # message1 = service.users().messages().get(userId='me', id='184c3bc47e62dcd2').execute()
+    # text = message1.get('payload').get('parts')[0].get('body').get('data')
+    # print(str(urlsafe_b64decode(text), 'utf-8'))
+    message2 = service.users().messages().get(userId='me', id='184e7f114cb09c68').execute()
+    print(message2.get('payload').get('mimeType') == 'multipart/mixed')
+
+
 if __name__ == '__main__':
-    main()
+    # main()
+    get_message()
