@@ -5,6 +5,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 from flask_cors import CORS
 import pandas as pd
 import base64
+from base64 import urlsafe_b64decode
 import os.path
 
 from google.auth.transport.requests import Request
@@ -29,6 +30,20 @@ X = df['text']
 X = cv.fit_transform(X)
 
 
+def parse_message(message):
+    return_message = {}
+    return_message.update({'from_email': [i['value'] for i in message.get('payload').get('headers') if i["name"] == "From"][0]})
+    return_message.update({'subject': [i['value'] for i in message.get('payload').get('headers') if i["name"] == "Subject"][0]})
+    if message.get('payload').get('mimeType') == 'multipart/mixed':
+        base64url_content = message.get('payload').get('parts')[0].get('parts')[0].get('body').get('data')
+        return_message.update({'content': str(urlsafe_b64decode(base64url_content), 'utf-8')})
+        return return_message
+    if message.get('payload').get('mimeType') == 'multipart/alternative':
+        base64url_content = message.get('payload').get('parts')[0].get('body').get('data')
+        return_message.update({'content': str(urlsafe_b64decode(base64url_content), 'utf-8')})
+        return return_message
+
+
 @app.route("/login")
 def login():
     global service
@@ -50,11 +65,9 @@ def get_normal_email():
     for message_id in message_ids:
         message = {}
         result = service.users().messages().get(userId='me', id=message_id).execute()
-        from_email = [i['value'] for i in result.get('payload').get('headers') if i["name"] == "From"][0]
-        subject = [i['value'] for i in result.get('payload').get('headers') if i["name"] == "Subject"][0]
-        content = base64.b64decode(result.get('payload').get('parts')[0].get('body').get('data')).decode('utf-8')[:-2]
-        if predict_spam_model.predict(cv.transform([content]))[0] == 0:
-            message.update({'from_email': from_email, 'subject': subject, 'content': content})
+        message_dict = parse_message(result)
+        if predict_spam_model.predict(cv.transform([message_dict.get('content')]))[0] == 0:
+            message.update({'from_email': message_dict.get('from_email'), 'subject': message_dict.get('subject'), 'content': message_dict.get('content')})
             messages.append(message)
     return messages
 
@@ -69,10 +82,8 @@ def get_spam_email():
     for message_id in message_ids:
         message = {}
         result = service.users().messages().get(userId='me', id=message_id).execute()
-        from_email = [i['value'] for i in result.get('payload').get('headers') if i["name"] == "From"][0]
-        subject = [i['value'] for i in result.get('payload').get('headers') if i["name"] == "Subject"][0]
-        content = base64.b64decode(result.get('payload').get('parts')[0].get('body').get('data')).decode('utf-8')[:-2]
-        if predict_spam_model.predict(cv.transform([content]))[0] == 1:
-            message.update({'from_email': from_email, 'subject': subject, 'content': content})
+        message_dict = parse_message(result)
+        if predict_spam_model.predict(cv.transform([message_dict.get('content')]))[0] == 1:
+            message.update({'from_email': message_dict.get('from_email'), 'subject': message_dict.get('subject'), 'content': message_dict.get('content')})
             messages.append(message)
     return messages
