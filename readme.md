@@ -5,9 +5,9 @@ Install
 - pip install Flask
 - pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib
 - pip install -U flask-cors
+- pip install nltk
 
-Execute command: 
-- python create_model
+Execute command:
 - flask --app app run
 
 End points:
